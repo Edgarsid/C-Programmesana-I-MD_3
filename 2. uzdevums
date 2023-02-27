@@ -1,0 +1,510 @@
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+// Speles princips. Programma skaita kopa no 1 lidz 3 vai no -1 lidz -3.  Ja rinda, kolonna vai diognale ir 3, vai -3, tad uzvar attiecigais speletais vai CPU
+
+char X = 'X';   // ziime X
+char O = 'O';   // ziime 0
+char lauk[10] = {'o','1','2','3','4','5','6','7','8','9'};   // laukums no 1 - 9
+int uzv =0;  // globalais mainigais uzvarai
+
+void laukums()   // funkcija laukumam
+{
+   	cout<<"        |     |     "<< endl;
+    cout<<"     "<<lauk[1]<<"  |  "<<lauk[2]<<"  |  "<<lauk[3]<<endl;
+    cout<<"   _____|_____|_____"<< endl;
+    cout<<"        |     |     "<< endl;
+    cout<<"     "<<lauk[4]<<"  |  "<<lauk[5]<<"  |  "<<lauk[6]<<endl;
+    cout<<"   _____|_____|_____"<< endl;
+    cout<<"        |     |     "<< endl;
+    cout<<"     "<<lauk[7]<<"  |  "<<lauk[8]<<"  |  "<<lauk[9]<<endl;
+    cout<<"        |     |     "<<endl << endl;
+}
+
+void lauk_logikai(int *a, int *b, int N, int M)   // funkcija, kas skaita rezultatu. Sakumaa visi ir 0
+{
+    for(int i=0; i<N*M+1; i++)
+    {
+    	*(a+i) = 0;
+        *(b+i) = 0;
+	}
+}
+
+void logika(int *a, int *b, int N, int M)  // funkcija, kas izvertee rezultaatu prieks speletaja (vai abiem speletajiem, ja spele "speletajs : speletajs")
+{
+	for(int i=0; i<N*M; i = i+M)  // cikls, lai izvertetu rindas rezultatu
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M; j++)
+    	{
+    		*(b+i) += *(a+j+i);		
+		}
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	
+	for(int i=0; i<N; ++i)  // cikls lai izvertetu kolonnas rezultatu
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M*N; j = j+M)
+    	{
+    		*(b+i) += *(a+j+i);			    		
+		}
+        cout << endl;
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	
+	int j = 0; // papildus mainigais diognales
+	*(b+j) = 0; // restarte rezultatu
+	for(int i=0, j = 0; i<N*M; i = i+M+1)  // cikls lai izvertetu galvenas diogn. rezultatu
+    	{
+    		*(b+j) +=*(a+i);
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+		}
+	
+	*(b+j) = 0;  // restarte rezultatu
+    for(int i=M-1; i<N*M-2; i = i+M-1) // cikls lai izvertetu blakus diogn. rezultatu
+    	{
+    		*(b+j) +=*(a+i);
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+		}
+}
+
+void logika_CPU(int *a, int *b, int N, int M)  // funkcija prieks CPU
+{
+	int r_k_d = 0; // mainigais, lai CPU zinatu, kuraa rindaa, kolonnaa vai diogn. jaliek -1
+	int check = 0; // taa kaa funkcija ir gara, nepiecieshams mainiigais, lai programma ieliek O tikai vienu reizi
+
+// Funkcija lai noliktu tresho O, ja jau ir divas O rinda
+    for(int i=0; i<N*M; i = i+M) // Parbauda vai rindaa ir divas 0, ja ir, tad ievieto tresho nulli
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M; j++)
+    	{
+    		*(b+i) += *(a+i+j);
+			r_k_d = i;			
+				if(*(b+i) == -2 && check == 0)
+					for(int i=r_k_d; i<r_k_d+N; i++)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+		}
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	for(int i=0; i<N; ++i) // Parbauda vai kolonnaa ir divas 0, ja ir, tad ievieto tresho nulli
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M*N; j = j+M)
+    	{
+    		*(b+i) += *(a+j+i);
+    		r_k_d = i;
+				if(*(b+i) == -2 && check == 0)
+					for(int i=r_k_d; i<N*M; i = i + N)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+		}
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	int j = 0;
+	*(b+j) = 0;  
+	for(int i=0, j = 0; i<N*M; i = i+M+1)  // Parbauda vai galvenajaa diogn. ir divas 0, ja ir, tad ievieto tresho nulli
+   			*(b+j) +=*(a+i);
+				if(*(b+j) == -2 && check == 0)
+					for(int i=0; i<N*M; i = i + M +1)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;	
+						}
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+	*(b+j) = 0;
+    for(int i=M-1; i<N*M-2; i = i+M-1)  // Parbauda vai blakus diogn. ir divas 0, ja ir, tad ievieto tresho nulli
+    		*(b+j) +=*(a+i);
+				if(*(b+j) == -2 && check == 0)
+					for(int i=M-1; i<N*M; i = i + M -1)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}	
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+
+// Funkcija, lai nepielautu speletajam 1 uzvaret
+	for(int i=0; i<N*M; i = i+M)  // Parbauda vai rindaa ir divi X, ja ir, tad tur ievieto O
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M; j++)
+    	{
+    		*(b+i) += *(a+i+j);
+			r_k_d = i;			
+    		 	if(*(b+i) == 2 && check == 0)
+					for(int i=r_k_d; i<r_k_d+N; i++)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+		}
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	for(int i=0; i<N; ++i)  // Parbauda vai kolonnaa ir divi X, ja ir, tad tur ievieto O
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M*N; j = j+M)
+    	{
+    		*(b+i) += *(a+j+i);
+    		r_k_d = i;
+    		    if(*(b+i) == 2 && check == 0)
+					for(int i=r_k_d; i<N*M; i = i + N)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+		}
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	
+	*(b+j) = 0;
+	for(int i=0, j = 0; i<N*M; i = i+M+1)   // Parbauda vai galvenajaa diogn. ir divi X, ja ir, tad tur ievieto O
+   			*(b+j) +=*(a+i);
+    		    if(*(b+j) == 2 && check == 0)
+					for(int i=0; i<N*M; i = i + M +1)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+		
+		
+	*(b+j) = 0;
+    for(int i=M-1; i<N*M-2; i = i+M-1)  // Parbauda vai blakus diogn. ir divi X, ja ir, tad tur ievieto O
+    		*(b+j) +=*(a+i);
+    		    if(*(b+j) == 2 && check == 0)
+					for(int i=M-1; i<N*M; i = i + M -1)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+
+// Funkcija lai noliktu O blakus citai O			
+	for(int i=0; i<N*M; i = i+M)  // parbauda vai rindaa ir viena O, ja ir, tad pievieno blakus
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M; j++)
+    		*(b+i) += *(a+i+j);
+			r_k_d = i;			
+				if(*(b+i) == -1 && check == 0)
+					for(int i=r_k_d; i<r_k_d+N; i++)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	for(int i=0; i<N; ++i)  // parbauda vai kolonnaa ir viena O, ja ir, tad pievieno blakus
+    {
+    	*(b+i) = 0;
+    	for(int j = 0; j<M*N; j = j+M)
+    		*(b+i) += *(a+j+i);
+    		r_k_d = i;
+				if(*(b+i) == -1 && check == 0)
+					for(int i=r_k_d; i<N*M; i = i + N)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}
+            if(*(b+i) == 3)
+				uzv = 1;
+			else if(*(b+i) == -3)
+				uzv = 2;
+	}
+	*(b+j) = 0;
+	for(int i=0, j = 0; i<N*M; i = i+M+1)  // parbauda vai galvenajaa diogn. ir viena O, ja ir, tad pievieno blakus
+   			*(b+j) +=*(a+i);
+				if(*(b+j) == -1 && check == 0)
+					for(int i=0; i<N*M; i = i + M +1)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;	
+						}
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+	*(b+j) = 0;
+    for(int i=M-1; i<N*M-2; i = i+M-1) // parbauda vai blakus diogn. ir viena O, ja ir, tad pievieno blakus
+    		*(b+j) +=*(a+i);
+				if(*(b+j) == -1 && check == 0)
+					for(int i=M-1; i<N*M; i = i + M -1)
+						if(*(a+i) == 0 && check == 0)
+						{
+							*(a+i) =-1;
+							lauk[i+1] = O;
+							check = 1;
+						}	
+    		if(*(b+j) == 3)
+					uzv = 1;
+			else if(*(b+j) == -3)
+					uzv = 2;
+					
+	if(check == 0)  // ja neviens no iepriekshejiem nesakrit, tad programma ievieto jebkuraa briivaa vietaa
+	{
+		int cits = rand()%8 + 1;
+		if(lauk[cits] == X || lauk[cits] == O)
+			{
+			do
+			{
+				cits = rand()%8 + 1;
+			}
+			while(lauk[cits] == X || lauk[cits] == O); 
+			}
+		*(a+cits) = -1;
+		lauk[cits] = O;
+	}
+}
+
+void spele_Player(int *a, int *b, int N, int M)  // funkcija, ja speelee "Speletajs : Speletajs"
+{
+	int l = 0, SP_1, SP_2;
+	do
+	{
+		cout << "Speletajs 1 ievadiet laukuma Nr: " << endl;
+		cin >> SP_1;
+		if(SP_1<1 || SP_1>9 || lauk[SP_1] == X || lauk[SP_1] == O) // parbauda, vai ievadits korekts cipars, vai arii ja cipars nav aiznemts
+		{
+			do
+			{
+				cout << "Ievadiet brivo laukumu vai no 1 lidz 9 " << endl;
+				cin >> SP_1;
+			}
+			while(SP_1<1 || SP_1>9 || lauk[SP_1] == X || lauk[SP_1] == O); 
+		}
+    	*(a+SP_1-1) = 1;
+    	lauk[SP_1] = X;
+    	laukums();
+		logika(a,b,N,M);
+		l++;
+		if(uzv ==1) // parbaude uzvarai speletajam 1
+			{
+				cout << "Speletajs 1 ir uzvarejis" << endl;
+				break;
+			}
+		if(l ==9) // kad ir izieti visi 9 gajieni
+			{
+				cout << "Neizskirts" << endl;
+				break;
+			}
+
+		cout << "Speletajs 2 ievadiet laukuma Nr: " << endl;
+		cin >> SP_2;
+		if(SP_2<1 || SP_2>9 || lauk[SP_2] == X || lauk[SP_2] == O) // parbauda, vai ievadits korekts cipars, vai arii ja cipars nav aiznemts
+		{
+			do
+			{
+				cout << "Ievadiet no 1 lidz 9 " << endl;
+				cin >> SP_2;
+			}
+			while(SP_2<1 || SP_2>9 || lauk[SP_2] == X || lauk[SP_2] == O); 
+			}
+
+		*(a+SP_2-1) = -1;
+		lauk[SP_2] = O;
+		laukums();
+		logika(a,b,N,M);
+		if(uzv ==2)   // parbaude uzvarai speletajam 2
+			{
+				cout << "Speletajs 2 ir uzvarejis" << endl;
+				break;
+			}
+		l++;
+	}
+	while(l != 9);
+}
+
+void spele_CPU(int *a, int *b, int N, int M) // funkcija, ja speelee speletajs : CPU
+{
+	int l = 0, SP_1, CPU;
+	do
+		{
+		cout << "Ievadiet laukuma Nr: " << endl;
+		cin >> SP_1;
+		if(SP_1<1 || SP_1>9 || lauk[SP_1] == X || lauk[SP_1] == O) // parbauda, vai ievadits korekts cipars, vai arii ja cipars nav aiznemts
+		{
+			do
+			{
+				cout << "Ievadiet brivo laukumu vai no 1 lidz 9 " << endl;
+				cin >> SP_1;
+			}
+			while(SP_1<1 || SP_1>9 || lauk[SP_1] == X || lauk[SP_1] == O); 
+		}
+    	*(a+SP_1-1) = 1;
+    	lauk[SP_1] = X;
+		logika(a,b,N,M);
+		if(uzv ==1)
+		{
+			cout << "Speletajs ir uzvarejis" << endl;  // parbaude uzvarai speletajam 1
+			break;
+		}
+
+		l++;
+		if(l ==9)  // kad ir izieti visi 9 gajieni
+		{
+			cout << "Neizskirts" << endl;
+			break;
+		}
+		if(l == 1)  // Pirmais gajiens programmai
+		{
+			CPU = 5;  // ieliek pa vidu, ja speletais to nav izdarijis
+			if(lauk[CPU] == X)
+			CPU = 1;  // ieliek vietaa 1, ja pa vidu ir aiznemts
+			*(a+CPU-1) = -1;
+		}
+		else if(l == 3 && lauk[5] == X && lauk[9] == X)  // peec vairakiem testiem, atradu ka var uzvareet CPU, tadel ir algoritms, lai nepielautu to
+		{
+			CPU = 3;
+			*(a+CPU-1) = -1;
+		}
+		else  // gajiens CPU
+			logika_CPU(a,b,N,M);
+    	lauk[CPU] = O;
+	
+		laukums();
+		if(uzv ==2)  // parbaude CPU uzvarai
+		{
+			cout << "CPU ir uzvarejis" << endl;
+			break;
+		}
+		l++;
+		}
+	while(l != 9 || uzv != 1 || uzv!=2);
+}
+
+int main()
+{
+	cout<<"      SPELE DESAS  "<< endl << endl;
+    time_t t;
+    srand((unsigned) time(&t));
+    const int N=3;
+    const int M=3;
+    int a[N][M];
+    int b[N][M];
+    int c[N][M];
+    int izvele;
+    int velreiz;  
+
+    do
+    {
+    	cout <<"Spele: Speletajs vs Speletajs   -   nospiediet 1"<< endl;
+    	cout <<"Spele: Speletajs vs CPU      	-   nospiediet 2"<< endl;
+    	cin >> izvele;
+    		if(izvele != 1 && izvele !=2)   // izveleties, kadu speli spelet
+    		{
+    			do
+    			{
+    				cout << "Ievadiet 1 vai 2" << endl;
+    				cin >> izvele;
+				}
+				while(izvele != 1 && izvele !=2);
+			}
+    
+    		if(izvele == 1)
+    		{
+   				cout<<"    Speletajs Nr. 1:  X  "<<endl;
+				cout<<"    Speletajs Nr. 2:  O  "<<endl << endl;
+	    		laukums();
+    			lauk_logikai(*a,*b,N,M);
+    			spele_Player(*a,*b,N,M);
+			}
+			if(izvele == 2)
+    		{
+   				cout<<"    Speletajs Nr. 1:  X  "<<endl;
+				cout<<"                CPU:  O  "<<endl << endl;
+	    		laukums();
+    			lauk_logikai(*a,*b,N,M);
+    			spele_CPU(*a,*b,N,M);
+			}
+			
+    	cout<<"    Vai velaties uzspelet vel?  "<<endl;
+    	cout<<"    1: Ja  "<<endl << "    2: Ne  "<<endl;
+    	cin >> velreiz;
+    		if(velreiz < 1 || velreiz > 2)  // programma piedava uzspelet vel vienu reizi
+    		{
+    			do
+				{
+				cout << "Ievadiet 1 vai 2" << endl;
+				cin >> velreiz;
+				}
+				while(velreiz != 1 && velreiz != 2); 
+			}
+		lauk[1] = '1'; lauk[2] = '2'; lauk[3] = '3'; lauk[4] = '4'; lauk[5] = '5'; lauk[6] = '6'; lauk[7] = '7'; lauk[8] = '8'; lauk[9] = '9'; // laukuma atjaunoshana
+		uzv =0;
+	}
+	while(velreiz == 1); 
+	   
+    system("pause");
+    return 0;
+}
