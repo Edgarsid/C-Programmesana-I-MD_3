@@ -1,0 +1,50 @@
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+int main()
+{
+    time_t t;
+    srand((unsigned) time(&t));
+    const int N = 5; // "5" vieta var but jebkurs skaitlis
+    
+    double n[N][N];   //divdimensiju masivs
+    
+    for(int i=0; i<N; i++)   // cikls masiva N x N izveidei
+    {
+    	 for(int j=0; j<N; j++)
+        {
+        	n[i][j] = rand()%90 + 10;  // Intervals no 10 lidz 99
+        		cout << n[i][j] << " ";  // Masiva izvade uz terminala
+		}
+        cout << endl;  
+}
+	for(int i = 0; i < N; i++)  // cikls, lai pagrieztu masivu 90 gradu plkts. rad virziena
+		for(int j = i; j < N - 1 - i ; j++)  
+// katrs "i" cikls maina vietam elementus pa perimetru. 1. "i" cikls maina vietam elementus arejaa perimetraa. 2 cikls maina elementus pa nakamo perimetru (iedomajoties, ka ieprieksejais perimetrs pazud) u.t.t.
+// Piem. 3 X 3 matricai ir 1 perimetrs, tatad vajag vienu "i" ciklu. 4 x 4 un 5 x 5 matricai ir divi perimetri, tatad vajag 2 "i" ciklus. 
+// katrs "j" cikls maina vietam pasus elementus.  Ciklu skaits ir atkarigs no elementiem perimetra. 1 "j" cikls samaina vietam 4 elementus. Piem. 4x4 matricai vajag 3 "j" ciklus, 5x5 matricai vajag 4 "j" ciklus
+// int j = i; j < N - 1 - i ; j++   = sis nosacijums lauj izveidot nepieciesamo "j" un "i ciklu skaitu"
+		{
+			int pag = n[j][N - 1 - i]; // pirmo mainamo elementu vajag saglabat kaa pagaidu elementu, lai tas uzreiz netiktu aiztaats ar citu elementu
+			n[j][N - 1 - i] = n[i][j];   // elementu maina
+			n[i][j] = n[N - 1 - j][i];   // elementu maina
+			n[N - 1 - j][i] = n[N - 1 - i][N - 1 - j];    // elementu maina
+			n[N - 1 - i][N - 1 - j] = pag;   // pagaidu elements nostajas vajadzigaa vietaa
+		}
+
+cout << endl << endl;
+
+	for(int i=0; i<N; i++)   // cikls pagriezta masiva izvadei uz terminala
+    {
+    	for(int j=0; j<N; j++)
+        		cout << n[i][j] << " ";
+        cout << endl;
+		}
+	cout << endl; 
+
+system("pause");
+return 0;
+}
